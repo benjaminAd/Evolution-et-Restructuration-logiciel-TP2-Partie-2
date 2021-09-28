@@ -55,6 +55,11 @@ public class Parser {
 
         //Nombre de méthodes de l'application
         System.out.println("Nombre de méthodes de l'application -> " + method_compter);
+
+        //Nombre de package
+
+        //Nombre moyen de méthodes par classes
+        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter));
     }
 
     // read all java files from specific folder
