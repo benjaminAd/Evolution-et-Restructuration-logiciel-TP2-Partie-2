@@ -1,3 +1,5 @@
+package com.exemple.tp2;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +21,8 @@ public class Parser {
     public static final String projectSourcePath = projectPath + "/src";
     public static final String jrePath = benPathJre;
 
-    public static int compteur = 0;
+    public static int class_compter = 0;
+    public static int method_compter = 0;
 
     public static void main(String[] args) throws IOException {
 
@@ -48,7 +51,10 @@ public class Parser {
         }
 
         //Nombre de classes de l'application
-        System.out.println("Nombre de classes de l'application -> " + compteur);
+        System.out.println("Nombre de classes de l'application -> " + class_compter);
+
+        //Nombre de méthodes de l'application
+        System.out.println("Nombre de méthodes de l'application -> " + method_compter);
     }
 
     // read all java files from specific folder
@@ -142,7 +148,14 @@ public class Parser {
     public static void countNumberClass(CompilationUnit parse) {
         TypeDeclarationVisitor typeDeclarationVisitor = new TypeDeclarationVisitor();
         parse.accept(typeDeclarationVisitor);
-        compteur += typeDeclarationVisitor.getTypes().size();
+        class_compter += typeDeclarationVisitor.getTypes().size();
+        typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
+            System.out.println("Nom de la classe -> " + typeDeclaration.getName());
+            method_compter += typeDeclaration.getMethods().length;
+            for (MethodDeclaration method : typeDeclaration.getMethods()) {
+                System.out.println("Méthode -> " + method.getName());
+            }
+        });
     }
 
 }
