@@ -4,12 +4,6 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.core.internal.utils.FileUtil;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -25,6 +19,8 @@ public class Parser {
     public static final String projectSourcePath = projectPath + "/src";
     public static final String jrePath = benPathJre;
 
+    public static int compteur = 0;
+
     public static void main(String[] args) throws IOException {
 
         // read java files
@@ -39,15 +35,20 @@ public class Parser {
             CompilationUnit parse = parse(content.toCharArray());
 
             // print methods info
-            printMethodInfo(parse);
+            //printMethodInfo(parse);
 
             // print variables info
-            printVariableInfo(parse);
+            // printVariableInfo(parse);
 
             //print method invocations
-            printMethodInvocationInfo(parse);
+            //printMethodInvocationInfo(parse);
+
+            countNumberClass(parse);
 
         }
+
+        //Nombre de classes de l'application
+        System.out.println("Nombre de classes de l'application -> " + compteur);
     }
 
     // read all java files from specific folder
@@ -136,6 +137,12 @@ public class Parser {
             }
 
         }
+    }
+
+    public static void countNumberClass(CompilationUnit parse) {
+        TypeDeclarationVisitor typeDeclarationVisitor = new TypeDeclarationVisitor();
+        parse.accept(typeDeclarationVisitor);
+        compteur += typeDeclarationVisitor.getTypes().size();
     }
 
 }
