@@ -3,6 +3,7 @@ package com.exemple.tp2;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ public class Parser {
 
             countNumberClass(parse);
             countNumberPackages(parse);
+            linePerMethods(parse);
         }
 
         //Nombre de classes de l'application
@@ -166,6 +168,14 @@ public class Parser {
         PackageVisitor packageVisitor = new PackageVisitor();
         parse.accept(packageVisitor);
         packageVisitor.getPackageDeclarations().forEach(packageDeclaration -> packageList.add(packageDeclaration.getName().toString()));
+    }
+
+    public static void linePerMethods(CompilationUnit parse) {
+        MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+        parse.accept(visitor);
+        for (MethodDeclaration method : visitor.getMethods()) {
+            System.out.println("Nom de la méthode -> " + method.getName() + " Nombre de ligne -> " + (Arrays.stream(method.getBody().toString().split("\n")).count() - 1));
+        }
     }
 
 }
