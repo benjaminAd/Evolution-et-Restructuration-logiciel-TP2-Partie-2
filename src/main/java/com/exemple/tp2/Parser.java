@@ -3,16 +3,12 @@ package com.exemple.tp2;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.*;
 
 public class Parser {
     private static final String benPathProject = "/Users/benjaminadolphe/Downloads/IntelligenceArtificielleTP2-main";
@@ -21,8 +17,11 @@ public class Parser {
     public static final String projectSourcePath = projectPath + "/src";
     public static final String jrePath = benPathJre;
 
+    public static int class_interface_compter = 0;
     public static int class_compter = 0;
     public static int method_compter = 0;
+
+    public static List<String> packageList = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
 
@@ -47,7 +46,7 @@ public class Parser {
             //printMethodInvocationInfo(parse);
 
             countNumberClass(parse);
-
+            countNumberPackages(parse);
         }
 
         //Nombre de classes de l'application
@@ -57,9 +56,10 @@ public class Parser {
         System.out.println("Nombre de méthodes de l'application -> " + method_compter);
 
         //Nombre de package
+        System.out.println("Nombre de paquets de l'application -> " + packageList.stream().distinct().toList().size());
 
         //Nombre moyen de méthodes par classes
-        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter));
+        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_interface_compter));
     }
 
     // read all java files from specific folder
@@ -153,14 +153,19 @@ public class Parser {
     public static void countNumberClass(CompilationUnit parse) {
         TypeDeclarationVisitor typeDeclarationVisitor = new TypeDeclarationVisitor();
         parse.accept(typeDeclarationVisitor);
-        class_compter += typeDeclarationVisitor.getTypes().size();
         typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
-            System.out.println("Nom de la classe -> " + typeDeclaration.getName());
-            method_compter += typeDeclaration.getMethods().length;
-            for (MethodDeclaration method : typeDeclaration.getMethods()) {
-                System.out.println("Méthode -> " + method.getName());
-            }
+            if (!typeDeclaration.isInterface()) class_compter += 1;
         });
+        class_interface_compter += typeDeclarationVisitor.getTypes().size();
+        typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
+            method_compter += typeDeclaration.getMethods().length;
+        });
+    }
+
+    public static void countNumberPackages(CompilationUnit parse) {
+        PackageVisitor packageVisitor = new PackageVisitor();
+        parse.accept(packageVisitor);
+        packageVisitor.getPackageDeclarations().forEach(packageDeclaration -> packageList.add(packageDeclaration.getName().toString()));
     }
 
 }
