@@ -92,6 +92,12 @@ public class Parser {
         System.out.println("Les classes appartenant aux deux catégories différentes");
         getClassesWithMostFieldsAndMethods().forEach(System.out::println);
 
+        //Les classes qui possèdent plus de X méthodes (la valeur de X est donnée)
+        System.out.println("Veuillez entrer un nombre afin de voir les classes qui possèdent plus que ce nombre de méthode :");
+        Scanner userScan = new Scanner(System.in);
+        String x = userScan.nextLine();
+        System.out.println("Voici les différentes classes avec plus de " + x + " méthodes : ");
+        moreThanXMethods(Integer.parseInt(x));
     }
 
     // read all java files from specific folder
@@ -275,5 +281,13 @@ public class Parser {
         List<String> res = new ArrayList<String>(classesWithMostMethods);
         res.retainAll(classesWithMostFields);
         return res;
+    }
+
+    public static void moreThanXMethods(int x) {
+        classesMethodsHashMap.forEach((key, value) -> {
+            if (value > x) {
+                System.out.println(key);
+            }
+        });
     }
 }
