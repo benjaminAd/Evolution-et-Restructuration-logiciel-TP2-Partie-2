@@ -2,9 +2,8 @@ package com.exemple.tp2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
@@ -23,6 +22,8 @@ public class Parser {
 
     public static List<String> packageList = new ArrayList<>();
     public static List<String> linePerMethodList = new ArrayList<>();
+
+    public static HashMap<String, Integer> classesMethodsHashMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
 
@@ -50,6 +51,7 @@ public class Parser {
             countNumberPackages(parse);
             getNumberOfLinesPerMethod(parse);
             getAverageNumberOfFieldsPerClass(parse);
+            putClassesMethodsInHashMap(parse);
         }
 
         //Nombre de classes de l'application
@@ -71,6 +73,12 @@ public class Parser {
 
         //Nombre moyens d'attributs par classe
         System.out.println("Nombre moyen d'attributs par classes -> " + (fields_compter / class_compter));
+
+        //Les 10% de classes qui possèdent le plus grand nombre de méthodes
+        System.out.println("Les 10% de classes avec le plus grand nombre de méthodes");
+        getClassesWithMostMethods().forEach(System.out::println);
+
+
 
     }
 
@@ -206,6 +214,28 @@ public class Parser {
                 fields_compter += typeDeclaration.getFields().length;
             }
         });
+    }
+
+    public static void putClassesMethodsInHashMap(CompilationUnit parse) {
+        TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
+        parse.accept(visitor);
+
+        for (TypeDeclaration type : visitor.getTypes()) {
+            if (!type.isInterface())
+                classesMethodsHashMap.put(type.getName().toString(), type.getMethods().length);
+        }
+    }
+
+    public static List<String> getClassesWithMostMethods() {
+        int numberOfClasses = (int) (0.1 * classesMethodsHashMap.size());
+
+        List<String> classes = classesMethodsHashMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        return classes.subList(0, numberOfClasses);
     }
 
 }
