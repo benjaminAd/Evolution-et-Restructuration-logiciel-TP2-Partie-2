@@ -20,6 +20,7 @@ public class Parser {
     public static int method_compter = 0;
     public static int fields_compter = 0;
     public static int max_parameter = 0;
+    public static int app_line_compter = 0;
 
     public static List<String> packageList = new ArrayList<>();
     public static List<String> linePerMethodList = new ArrayList<>();
@@ -61,6 +62,7 @@ public class Parser {
             putClassesFieldsInHashMap(parse);
             getMethodsWithLines(parse);
             getMaxParameters(parse);
+            getTotalNumberOfLines(parse);
         }
 
         //Nombre de classes de l'application
@@ -120,6 +122,10 @@ public class Parser {
         //Le nombre maximal de paramètres par rapport à toutes les méthodes de l’application.
         System.out.println("---------------------------------------------------------------------");
         System.out.println("Le nombre maximal de paramètres est : " + max_parameter);
+
+        //Nombre de lignes totales du code
+        System.out.println("---------------------------------------------------------------------");
+        System.out.println("Nombre total de lignes de code -> " + app_line_compter);
     }
 
     // read all java files from specific folder
@@ -357,5 +363,19 @@ public class Parser {
                 max_parameter = methodDeclaration.parameters().size();
             }
         });
+    }
+
+    public static void getTotalNumberOfLines(CompilationUnit parse) {
+        TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
+        parse.accept(visitor);
+
+        visitor.getTypes().forEach(typeDeclaration -> {
+            int beginning = parse.getLineNumber(typeDeclaration.getStartPosition());
+            int end = parse.getLineNumber(typeDeclaration.getStartPosition() + typeDeclaration.getLength());
+            app_line_compter += Math.max((end - beginning), 0);
+        });
+        PackageVisitor visitor1 = new PackageVisitor();
+        parse.accept(visitor1);
+        app_line_compter += visitor1.getPackageDeclarations().size();
     }
 }
