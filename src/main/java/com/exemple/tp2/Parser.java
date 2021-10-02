@@ -22,6 +22,8 @@ public class Parser {
 
     public static List<String> packageList = new ArrayList<>();
     public static List<String> linePerMethodList = new ArrayList<>();
+    public static List<String> classesWithMostMethods = new ArrayList<>();
+    public static List<String> classesWithMostFields = new ArrayList<>();
 
     public static HashMap<String, Integer> classesMethodsHashMap = new HashMap<>();
     public static HashMap<String, Integer> classesFieldsHashMap = new HashMap<>();
@@ -78,11 +80,17 @@ public class Parser {
 
         //Les 10% de classes qui possèdent le plus grand nombre de méthodes
         System.out.println("Les 10% de classes avec le plus grand nombre de méthodes");
-        getClassesWithMostMethods().forEach(System.out::println);
+        getClassesWithMostMethods();
+        classesWithMostMethods.forEach(System.out::println);
 
         //Les 10% des classes qui possèdent le plus grand nombre d'attributs
         System.out.println("Les 10% de classes avec le plus grand nombre d'attributs");
-        getClassesWithMostFields().forEach(System.out::println);
+        getClassesWithMostFields();
+        classesWithMostFields.forEach(System.out::println);
+
+        //Les classes appartenant aux deux précédentes
+        System.out.println("Les classes appartenant aux deux catégories différentes");
+        getClassesWithMostFieldsAndMethods().forEach(System.out::println);
 
     }
 
@@ -229,7 +237,7 @@ public class Parser {
         });
     }
 
-    public static List<String> getClassesWithMostMethods() {
+    public static void getClassesWithMostMethods() {
         int numberOfClasses = (int) (0.1 * classesMethodsHashMap.size());
 
         List<String> classes = classesMethodsHashMap.entrySet()
@@ -238,7 +246,7 @@ public class Parser {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        return classes.subList(0, numberOfClasses);
+        classesWithMostMethods = classes.subList(0, numberOfClasses);
     }
 
     public static void putClassesFieldsInHashMap(CompilationUnit parse) {
@@ -252,7 +260,7 @@ public class Parser {
         });
     }
 
-    public static List<String> getClassesWithMostFields() {
+    public static void getClassesWithMostFields() {
         int numberOfClasses = (int) (0.1 * classesFieldsHashMap.size());
 
         List<String> classes = classesFieldsHashMap.entrySet()
@@ -260,6 +268,12 @@ public class Parser {
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        return classes.subList(0, numberOfClasses);
+        classesWithMostFields = classes.subList(0, numberOfClasses);
+    }
+
+    public static List<String> getClassesWithMostFieldsAndMethods() {
+        List<String> res = new ArrayList<String>(classesWithMostMethods);
+        res.retainAll(classesWithMostFields);
+        return res;
     }
 }
