@@ -19,6 +19,7 @@ public class Parser {
     public static int class_compter = 0;
     public static int method_compter = 0;
     public static int fields_compter = 0;
+    public static int max_parameter = 0;
 
     public static List<String> packageList = new ArrayList<>();
     public static List<String> linePerMethodList = new ArrayList<>();
@@ -59,6 +60,7 @@ public class Parser {
             putClassesMethodsInHashMap(parse);
             putClassesFieldsInHashMap(parse);
             getMethodsWithLines(parse);
+            getMaxParameters(parse);
         }
 
         //Nombre de classes de l'application
@@ -114,6 +116,10 @@ public class Parser {
         System.out.println("---------------------------------------------------------------------");
         System.out.println("Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe)");
         getMethodsWithMostLines().forEach(System.out::println);
+
+        //Le nombre maximal de paramètres par rapport à toutes les méthodes de l’application.
+        System.out.println("---------------------------------------------------------------------");
+        System.out.println("Le nombre maximal de paramètres est : " + max_parameter);
     }
 
     // read all java files from specific folder
@@ -307,7 +313,7 @@ public class Parser {
         });
     }
 
-    private static void getMethodsWithLines(CompilationUnit parse) {
+    public static void getMethodsWithLines(CompilationUnit parse) {
         TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
         parse.accept(visitor);
 
@@ -324,7 +330,7 @@ public class Parser {
         }
     }
 
-    private static List<String> getMethodsWithMostLines() {
+    public static List<String> getMethodsWithMostLines() {
 
         List<String> methodsWithMostLines = new ArrayList<String>();
 
@@ -341,5 +347,15 @@ public class Parser {
         }
 
         return methodsWithMostLines;
+    }
+
+    public static void getMaxParameters(CompilationUnit parse) {
+        MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+        parse.accept(visitor);
+        visitor.getMethods().forEach(methodDeclaration -> {
+            if (methodDeclaration.parameters().size() > max_parameter) {
+                max_parameter = methodDeclaration.parameters().size();
+            }
+        });
     }
 }
