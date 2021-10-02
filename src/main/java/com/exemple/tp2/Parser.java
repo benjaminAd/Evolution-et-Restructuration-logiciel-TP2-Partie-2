@@ -24,6 +24,7 @@ public class Parser {
     public static List<String> linePerMethodList = new ArrayList<>();
 
     public static HashMap<String, Integer> classesMethodsHashMap = new HashMap<>();
+    public static HashMap<String, Integer> classesFieldsHashMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
 
@@ -52,6 +53,7 @@ public class Parser {
             getNumberOfLinesPerMethod(parse);
             getAverageNumberOfFieldsPerClass(parse);
             putClassesMethodsInHashMap(parse);
+            putClassesFieldsInHashMap(parse);
         }
 
         //Nombre de classes de l'application
@@ -78,7 +80,9 @@ public class Parser {
         System.out.println("Les 10% de classes avec le plus grand nombre de méthodes");
         getClassesWithMostMethods().forEach(System.out::println);
 
-
+        //Les 10% des classes qui possèdent le plus grand nombre d'attributs
+        System.out.println("Les 10% de classes avec le plus grand nombre d'attributs");
+        getClassesWithMostFields().forEach(System.out::println);
 
     }
 
@@ -219,11 +223,10 @@ public class Parser {
     public static void putClassesMethodsInHashMap(CompilationUnit parse) {
         TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
         parse.accept(visitor);
-
-        for (TypeDeclaration type : visitor.getTypes()) {
+        visitor.getTypes().forEach(type -> {
             if (!type.isInterface())
                 classesMethodsHashMap.put(type.getName().toString(), type.getMethods().length);
-        }
+        });
     }
 
     public static List<String> getClassesWithMostMethods() {
@@ -238,4 +241,25 @@ public class Parser {
         return classes.subList(0, numberOfClasses);
     }
 
+    public static void putClassesFieldsInHashMap(CompilationUnit parse) {
+        TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
+        parse.accept(visitor);
+
+        visitor.getTypes().forEach(type -> {
+            if (!type.isInterface()) {
+                classesFieldsHashMap.put(type.getName().toString(), type.getFields().length);
+            }
+        });
+    }
+
+    public static List<String> getClassesWithMostFields() {
+        int numberOfClasses = (int) (0.1 * classesFieldsHashMap.size());
+
+        List<String> classes = classesFieldsHashMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        return classes.subList(0, numberOfClasses);
+    }
 }
