@@ -17,11 +17,12 @@ public class Parser {
     public static final String projectSourcePath = projectPath + "/src";
     public static final String jrePath = benPathJre;
 
-    public static int class_interface_compter = 0;
     public static int class_compter = 0;
     public static int method_compter = 0;
+    public static int fields_compter = 0;
 
     public static List<String> packageList = new ArrayList<>();
+    public static List<String> linePerMethodList = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
 
@@ -47,8 +48,8 @@ public class Parser {
 
             countNumberClass(parse);
             countNumberPackages(parse);
-            //Nombre de lignes de code par méthode
             getNumberOfLinesPerMethod(parse);
+            getAverageNumberOfFieldsPerClass(parse);
         }
 
         //Nombre de classes de l'application
@@ -61,7 +62,15 @@ public class Parser {
         System.out.println("Nombre de paquets de l'application -> " + packageList.stream().distinct().toList().size());
 
         //Nombre moyen de méthodes par classes
-        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_interface_compter));
+        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter));
+
+        //Nombre de lignes de codes par méthode
+        System.out.println("------Lignes de codes par méthodes ------");
+        linePerMethodList.forEach(System.out::println);
+        System.out.println("-----------------------------------------");
+
+        //Nombre moyens d'attributs par classe
+        System.out.println("Nombre moyen d'attributs par classes -> " + (fields_compter / class_compter));
 
     }
 
@@ -157,11 +166,10 @@ public class Parser {
         TypeDeclarationVisitor typeDeclarationVisitor = new TypeDeclarationVisitor();
         parse.accept(typeDeclarationVisitor);
         typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
-            if (!typeDeclaration.isInterface()) class_compter += 1;
-        });
-        class_interface_compter += typeDeclarationVisitor.getTypes().size();
-        typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
-            method_compter += typeDeclaration.getMethods().length;
+            if (!typeDeclaration.isInterface()) {
+                class_compter += 1;
+                method_compter += typeDeclaration.getMethods().length;
+            }
         });
     }
 
@@ -175,7 +183,7 @@ public class Parser {
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         parse.accept(visitor);
         for (MethodDeclaration method : visitor.getMethods()) {
-            System.out.println("La méthode " + method.getName() + " a " + getNumberOfLineOfAMethod(parse, method) + " lignes de codes");
+            linePerMethodList.add("La méthode " + method.getName() + " a " + getNumberOfLineOfAMethod(parse, method) + " lignes de codes");
         }
     }
 
@@ -188,6 +196,16 @@ public class Parser {
         int end = parse.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength());
 
         return Math.max(end - beginning - 1, 0);
+    }
+
+    public static void getAverageNumberOfFieldsPerClass(CompilationUnit parse) {
+        TypeDeclarationVisitor typeDeclarationVisitor = new TypeDeclarationVisitor();
+        parse.accept(typeDeclarationVisitor);
+        typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
+            if (!typeDeclaration.isInterface()) {
+                fields_compter += typeDeclaration.getFields().length;
+            }
+        });
     }
 
 }
