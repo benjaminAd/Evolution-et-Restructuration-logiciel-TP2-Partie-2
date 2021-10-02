@@ -3,7 +3,6 @@ package com.exemple.tp2;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +47,8 @@ public class Parser {
 
             countNumberClass(parse);
             countNumberPackages(parse);
-            linePerMethods(parse);
+            //Nombre de lignes de code par méthode
+            getNumberOfLinesPerMethod(parse);
         }
 
         //Nombre de classes de l'application
@@ -62,6 +62,7 @@ public class Parser {
 
         //Nombre moyen de méthodes par classes
         System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_interface_compter));
+
     }
 
     // read all java files from specific folder
@@ -170,12 +171,23 @@ public class Parser {
         packageVisitor.getPackageDeclarations().forEach(packageDeclaration -> packageList.add(packageDeclaration.getName().toString()));
     }
 
-    public static void linePerMethods(CompilationUnit parse) {
+    public static void getNumberOfLinesPerMethod(CompilationUnit parse) {
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         parse.accept(visitor);
         for (MethodDeclaration method : visitor.getMethods()) {
-            System.out.println("Nom de la méthode -> " + method.getName() + " Nombre de ligne -> " + (Arrays.stream(method.getBody().toString().split("\n")).count() - 1));
+            System.out.println("La méthode " + method.getName() + " a " + getNumberOfLineOfAMethod(parse, method) + " lignes de codes");
         }
+    }
+
+    public static int getNumberOfLineOfAMethod(CompilationUnit parse, MethodDeclaration method) {
+        if (method.getBody() == null) {
+            return 0;
+        }
+
+        int beginning = parse.getLineNumber(method.getBody().getStartPosition());
+        int end = parse.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength());
+
+        return Math.max(end - beginning - 1, 0);
     }
 
 }
