@@ -25,6 +25,8 @@ public class Parser {
     public static List<String> classesWithMostMethods = new ArrayList<>();
     public static List<String> classesWithMostFields = new ArrayList<>();
 
+    public static List<Map<String, Integer>> methodsWithNumberOfLinesByClass = new ArrayList<>();
+
     public static HashMap<String, Integer> classesMethodsHashMap = new HashMap<>();
     public static HashMap<String, Integer> classesFieldsHashMap = new HashMap<>();
 
@@ -56,18 +58,23 @@ public class Parser {
             getAverageNumberOfFieldsPerClass(parse);
             putClassesMethodsInHashMap(parse);
             putClassesFieldsInHashMap(parse);
+            getMethodsWithLines(parse);
         }
 
         //Nombre de classes de l'application
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre de classes de l'application -> " + class_compter);
 
         //Nombre de méthodes de l'application
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre de méthodes de l'application -> " + method_compter);
 
         //Nombre de package
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre de paquets de l'application -> " + packageList.stream().distinct().toList().size());
 
         //Nombre moyen de méthodes par classes
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter));
 
         //Nombre de lignes de codes par méthode
@@ -79,25 +86,34 @@ public class Parser {
         System.out.println("Nombre moyen d'attributs par classes -> " + (fields_compter / class_compter));
 
         //Les 10% de classes qui possèdent le plus grand nombre de méthodes
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Les 10% de classes avec le plus grand nombre de méthodes");
         getClassesWithMostMethods();
         classesWithMostMethods.forEach(System.out::println);
 
         //Les 10% des classes qui possèdent le plus grand nombre d'attributs
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Les 10% de classes avec le plus grand nombre d'attributs");
         getClassesWithMostFields();
         classesWithMostFields.forEach(System.out::println);
 
         //Les classes appartenant aux deux précédentes
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Les classes appartenant aux deux catégories différentes");
         getClassesWithMostFieldsAndMethods().forEach(System.out::println);
 
         //Les classes qui possèdent plus de X méthodes (la valeur de X est donnée)
+        System.out.println("---------------------------------------------------------------------");
         System.out.println("Veuillez entrer un nombre afin de voir les classes qui possèdent plus que ce nombre de méthode :");
         Scanner userScan = new Scanner(System.in);
         String x = userScan.nextLine();
         System.out.println("Voici les différentes classes avec plus de " + x + " méthodes : ");
         moreThanXMethods(Integer.parseInt(x));
+
+        //Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe).
+        System.out.println("---------------------------------------------------------------------");
+        System.out.println("Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe)");
+        getMethodsWithMostLines().forEach(System.out::println);
     }
 
     // read all java files from specific folder
@@ -289,5 +305,41 @@ public class Parser {
                 System.out.println(key);
             }
         });
+    }
+
+    private static void getMethodsWithLines(CompilationUnit parse) {
+        TypeDeclarationVisitor visitor = new TypeDeclarationVisitor();
+        parse.accept(visitor);
+
+        for (TypeDeclaration type : visitor.getTypes()) {
+            if (type.isInterface())
+                continue;
+
+            Map<String, Integer> methodsWithLines = new HashMap<String, Integer>();
+
+            for (MethodDeclaration method : type.getMethods())
+                methodsWithLines.put(type.getName() + "." + method.getName(), getNumberOfLineOfAMethod(parse, method));
+
+            methodsWithNumberOfLinesByClass.add(methodsWithLines);
+        }
+    }
+
+    private static List<String> getMethodsWithMostLines() {
+
+        List<String> methodsWithMostLines = new ArrayList<String>();
+
+        for (Map<String, Integer> methodsWithLines : methodsWithNumberOfLinesByClass) {
+            int numberOfMethods = (int) Math.ceil(0.1 * methodsWithLines.size());
+
+            List<String> methods = methodsWithLines.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            methodsWithMostLines.addAll(methods.subList(0, numberOfMethods));
+        }
+
+        return methodsWithMostLines;
     }
 }
