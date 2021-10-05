@@ -13,11 +13,9 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 
 public class ParserAST {
-    private static final String benPathProject = "/Users/benjaminadolphe/Downloads/SootTutorial";
-    private static final String benPathJre = "/Users/benjaminadolphe/Library/Java/JavaVirtualMachines/openjdk-16.0.1/Contents/Home/bin";
-    public static final String projectPath = benPathProject;
+    public static final String projectPath = "/Users/benjaminadolphe/Downloads/SootTutorial";
     public static final String projectSourcePath = projectPath + "/src";
-    public static final String jrePath = benPathJre;
+    public static final String jrePath = "/Users/benjaminadolphe/Library/Java/JavaVirtualMachines/openjdk-16.0.1/Contents/Home/bin";
 
     public static int class_compter = 0;
     public static int method_compter = 0;
@@ -401,7 +399,8 @@ public class ParserAST {
 
     public static void createDiagram() {
         try {
-            FileWriter writer = new FileWriter("Graph.dot");
+            String name = UUID.randomUUID().toString();
+            FileWriter writer = new FileWriter("export/dot/"+name + ".dot");
             writer.write("digraph \"call-graph\" {\n");
             methodInvocations.stream().distinct().toList().forEach(methodInvocation -> {
                 try {
@@ -414,16 +413,16 @@ public class ParserAST {
             writer.close();
             System.out.println("");
             System.out.println("un fichier a bien été créé");
-            convertDiagramToPng();
+            convertDiagramToPng(name);
         } catch (IOException e) {
             System.out.println("Une erreur s'est produite.");
         }
     }
 
-    public static void convertDiagramToPng() {
-        try (InputStream dot = new FileInputStream("./Graph.dot")) {
+    public static void convertDiagramToPng(String name) {
+        try (InputStream dot = new FileInputStream("export/dot/"+name+".dot")) {
             MutableGraph g = new Parser().read(dot);
-            Graphviz.fromGraph(g).width(3000).render(Format.PNG).toFile(new File("example/graph.png"));
+            Graphviz.fromGraph(g).width(10000).render(Format.PNG).toFile(new File("export/images/" + name + ".png"));
             System.out.println("Votre graphique a été généré au format PNG");
         } catch (IOException e) {
             e.printStackTrace();
