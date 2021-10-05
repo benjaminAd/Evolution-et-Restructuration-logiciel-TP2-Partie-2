@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.exemple.tp2.library.showPNG;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
@@ -11,6 +12,10 @@ import guru.nidi.graphviz.parse.Parser;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
+
+import javax.swing.JFrame;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 
 public class ParserAST {
     public static final String projectPath = "/Users/benjaminadolphe/Downloads/SootTutorial";
@@ -77,7 +82,7 @@ public class ParserAST {
 
         //Nombre de package
         System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre de paquets de l'application -> " + packageList.stream().distinct().toList().size());
+        System.out.println("Nombre de paquets de l'application -> " + (int) packageList.stream().distinct().count());
 
         //Nombre moyen de méthodes par classes
         System.out.println("---------------------------------------------------------------------");
@@ -290,7 +295,7 @@ public class ParserAST {
     }
 
     public static void getClassesWithMostMethods() {
-        int numberOfClasses = (int) (0.1 * classesMethodsHashMap.size());
+        int numberOfClasses = (int) Math.ceil(0.1 * classesMethodsHashMap.size());
 
         List<String> classes = classesMethodsHashMap.entrySet()
                 .stream()
@@ -313,7 +318,7 @@ public class ParserAST {
     }
 
     public static void getClassesWithMostFields() {
-        int numberOfClasses = (int) (0.1 * classesFieldsHashMap.size());
+        int numberOfClasses = (int) Math.ceil(0.1 * classesFieldsHashMap.size());
 
         List<String> classes = classesFieldsHashMap.entrySet()
                 .stream()
@@ -400,9 +405,9 @@ public class ParserAST {
     public static void createDiagram() {
         try {
             String name = UUID.randomUUID().toString();
-            FileWriter writer = new FileWriter("export/dot/"+name + ".dot");
+            FileWriter writer = new FileWriter("export/dot/" + name + ".dot");
             writer.write("digraph \"call-graph\" {\n");
-            methodInvocations.stream().distinct().toList().forEach(methodInvocation -> {
+            methodInvocations.stream().distinct().collect(Collectors.toList()).forEach(methodInvocation -> {
                 try {
                     writer.write(methodInvocation);
                 } catch (IOException e) {
@@ -420,10 +425,11 @@ public class ParserAST {
     }
 
     public static void convertDiagramToPng(String name) {
-        try (InputStream dot = new FileInputStream("export/dot/"+name+".dot")) {
+        try (InputStream dot = new FileInputStream("export/dot/" + name + ".dot")) {
             MutableGraph g = new Parser().read(dot);
             Graphviz.fromGraph(g).width(10000).render(Format.PNG).toFile(new File("export/images/" + name + ".png"));
             System.out.println("Votre graphique a été généré au format PNG");
+            new showPNG().createDiagramFrame("export/images/" + name + ".png");
         } catch (IOException e) {
             e.printStackTrace();
         }
