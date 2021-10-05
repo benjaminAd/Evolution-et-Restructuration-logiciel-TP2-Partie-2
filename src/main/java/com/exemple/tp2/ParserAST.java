@@ -1,16 +1,19 @@
 package com.exemple.tp2;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.MutableGraph;
+import guru.nidi.graphviz.parse.Parser;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 
-public class Parser {
-    private static final String benPathProject = "/Users/benjaminadolphe/Downloads/IntelligenceArtificielleTP2-main";
+public class ParserAST {
+    private static final String benPathProject = "/Users/benjaminadolphe/Downloads/SootTutorial";
     private static final String benPathJre = "/Users/benjaminadolphe/Library/Java/JavaVirtualMachines/openjdk-16.0.1/Contents/Home/bin";
     public static final String projectPath = benPathProject;
     public static final String projectSourcePath = projectPath + "/src";
@@ -32,6 +35,8 @@ public class Parser {
     public static HashMap<String, Integer> classesMethodsHashMap = new HashMap<>();
     public static HashMap<String, Integer> classesFieldsHashMap = new HashMap<>();
 
+    public static List<String> methodInvocations = new ArrayList<>();
+
     public static void main(String[] args) throws IOException {
 
         // read java files
@@ -52,8 +57,7 @@ public class Parser {
             // printVariableInfo(parse);
 
             //print method invocations
-            //printMethodInvocationInfo(parse);
-
+            printMethodInvocationInfo(parse);
             countNumberClass(parse);
             countNumberPackages(parse);
             getNumberOfLinesPerMethod(parse);
@@ -126,6 +130,8 @@ public class Parser {
         //Nombre de lignes totales du code
         System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre total de lignes de code -> " + app_line_compter);
+
+        createDiagram();
     }
 
     // read all java files from specific folder
@@ -207,10 +213,24 @@ public class Parser {
 
             MethodInvocationVisitor visitor2 = new MethodInvocationVisitor();
             method.accept(visitor2);
-
+            StringBuilder methodName = new StringBuilder();
+            if (method.resolveBinding() != null) {
+                if (method.resolveBinding().getDeclaringClass() != null) {
+                    methodName.append(method.resolveBinding().getDeclaringClass().getName()).append(".");
+                }
+            }
+            methodName.append(method.getName().toString()).append("()");
             for (MethodInvocation methodInvocation : visitor2.getMethods()) {
-                System.out.println("method " + method.getName() + " invoc method "
-                        + methodInvocation.getName());
+                IMethodBinding methodBinding = methodInvocation.resolveMethodBinding();
+                StringBuilder methodInvoName = new StringBuilder();
+                if (methodBinding != null) {
+                    ITypeBinding classTypeBinding = methodBinding.getDeclaringClass();
+                    if (classTypeBinding != null) {
+                        methodInvoName.append(classTypeBinding.getName()).append(".");
+                    }
+                }
+                methodInvoName.append(methodInvocation.getName());
+                methodInvocations.add("\t" + "\"" + methodName + "\"->\"" + methodInvoName + "()\";\n");
             }
 
         }
@@ -377,5 +397,36 @@ public class Parser {
         PackageVisitor visitor1 = new PackageVisitor();
         parse.accept(visitor1);
         app_line_compter += visitor1.getPackageDeclarations().size();
+    }
+
+    public static void createDiagram() {
+        try {
+            FileWriter writer = new FileWriter("Graph.dot");
+            writer.write("digraph \"call-graph\" {\n");
+            methodInvocations.stream().distinct().toList().forEach(methodInvocation -> {
+                try {
+                    writer.write(methodInvocation);
+                } catch (IOException e) {
+                    System.out.println("Une erreur est survenue au niveau de l'écriture des liens");
+                }
+            });
+            writer.write("}");
+            writer.close();
+            System.out.println("");
+            System.out.println("un fichier a bien été créé");
+            convertDiagramToPng();
+        } catch (IOException e) {
+            System.out.println("Une erreur s'est produite.");
+        }
+    }
+
+    public static void convertDiagramToPng() {
+        try (InputStream dot = new FileInputStream("./Graph.dot")) {
+            MutableGraph g = new Parser().read(dot);
+            Graphviz.fromGraph(g).width(3000).render(Format.PNG).toFile(new File("example/graph.png"));
+            System.out.println("Votre graphique a été généré au format PNG");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
