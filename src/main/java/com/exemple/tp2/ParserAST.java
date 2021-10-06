@@ -1,10 +1,11 @@
 package com.exemple.tp2;
 
+import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import com.exemple.tp2.library.showPNG;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
@@ -12,10 +13,6 @@ import guru.nidi.graphviz.parse.Parser;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
-
-import javax.swing.JFrame;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
 public class ParserAST {
     public static final String projectPath = "/Users/benjaminadolphe/Downloads/SootTutorial";
@@ -134,6 +131,7 @@ public class ParserAST {
         System.out.println("---------------------------------------------------------------------");
         System.out.println("Nombre total de lignes de code -> " + app_line_compter);
 
+        System.setProperty("java.awt.headless", "false");
         createDiagram();
     }
 
@@ -429,9 +427,13 @@ public class ParserAST {
             MutableGraph g = new Parser().read(dot);
             Graphviz.fromGraph(g).width(10000).render(Format.PNG).toFile(new File("export/images/" + name + ".png"));
             System.out.println("Votre graphique a été généré au format PNG");
-            new showPNG().createDiagramFrame("export/images/" + name + ".png");
+            showView("export/images/" + name + ".png");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void showView(String filename) throws IOException {
+        Desktop.getDesktop().open(new File(filename));
     }
 }
