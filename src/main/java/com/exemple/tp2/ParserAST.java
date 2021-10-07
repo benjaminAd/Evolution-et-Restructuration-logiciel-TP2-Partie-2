@@ -393,11 +393,20 @@ public class ParserAST {
         visitor.getTypes().forEach(typeDeclaration -> {
             int beginning = parse.getLineNumber(typeDeclaration.getStartPosition());
             int end = parse.getLineNumber(typeDeclaration.getStartPosition() + typeDeclaration.getLength());
+            System.out.println(typeDeclaration.getName() + " -> " + beginning + " to " + end + " -> " + typeDeclaration.getStartPosition() + " et " + typeDeclaration.getLength());
             app_line_compter += Math.max((end - beginning), 0);
         });
         PackageVisitor visitor1 = new PackageVisitor();
         parse.accept(visitor1);
+        visitor1.getPackageDeclarations().forEach(System.out::println);
         app_line_compter += visitor1.getPackageDeclarations().size();
+
+        ImportDeclarationVisitor visitor2 = new ImportDeclarationVisitor();
+        parse.accept(visitor2);
+        visitor2.getImports().forEach(importDeclaration -> System.out.println(importDeclaration.getName()));
+        app_line_compter += visitor2.getImports().size();
+
+        app_line_compter += parse.getCommentList().size();
     }
 
     public static void createDiagram() {
