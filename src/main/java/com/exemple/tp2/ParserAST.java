@@ -392,7 +392,7 @@ public class ParserAST {
 
         visitor.getTypes().forEach(typeDeclaration -> {
             int beginning = parse.getLineNumber(typeDeclaration.getStartPosition());
-            int end = parse.getLineNumber(typeDeclaration.getStartPosition() + typeDeclaration.getLength());
+            int end = parse.getLineNumber(typeDeclaration.getStartPosition() + typeDeclaration.getLength() - 1);
             app_line_compter += Math.max((end - beginning), 0);
         });
         PackageVisitor visitor1 = new PackageVisitor();
