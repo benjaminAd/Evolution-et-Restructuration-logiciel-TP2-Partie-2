@@ -1,6 +1,7 @@
 package com.exemple.tp2;
 
 import java.awt.*;
+import java.awt.Dimension;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -14,8 +15,10 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 
+import javax.swing.*;
+
 public class ParserAST {
-    public static final String projectPath = "/Users/benjaminadolphe/Downloads/SootTutorial";
+    public static final String projectPath = "/Users/benjaminadolphe/Downloads/IntelligenceArtificielleTP2-main";
     public static final String projectSourcePath = projectPath + "/src";
     public static final String jrePath = "/Users/benjaminadolphe/Library/Java/JavaVirtualMachines/openjdk-16.0.1/Contents/Home/bin";
 
@@ -29,6 +32,7 @@ public class ParserAST {
     public static List<String> linePerMethodList = new ArrayList<>();
     public static List<String> classesWithMostMethods = new ArrayList<>();
     public static List<String> classesWithMostFields = new ArrayList<>();
+    public static List<String> moreThanXList = new ArrayList<>();
 
     public static List<Map<String, Integer>> methodsWithNumberOfLinesByClass = new ArrayList<>();
 
@@ -68,71 +72,13 @@ public class ParserAST {
             getMaxParameters(parse);
             getTotalNumberOfLines(parse);
         }
-
-        //Nombre de classes de l'application
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre de classes de l'application -> " + class_compter);
-
-        //Nombre de méthodes de l'application
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre de méthodes de l'application -> " + method_compter);
-
-        //Nombre de package
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre de paquets de l'application -> " + (int) packageList.stream().distinct().count());
-
-        //Nombre moyen de méthodes par classes
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter));
-
-        //Nombre de lignes de codes par méthode
-        System.out.println("------Lignes de codes par méthodes ------");
-        linePerMethodList.forEach(System.out::println);
-        System.out.println("-----------------------------------------");
-
-        //Nombre moyens d'attributs par classe
-        System.out.println("Nombre moyen d'attributs par classes -> " + (fields_compter / class_compter));
-
-        //Les 10% de classes qui possèdent le plus grand nombre de méthodes
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Les 10% de classes avec le plus grand nombre de méthodes");
         getClassesWithMostMethods();
-        classesWithMostMethods.forEach(System.out::println);
-
-        //Les 10% des classes qui possèdent le plus grand nombre d'attributs
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Les 10% de classes avec le plus grand nombre d'attributs");
         getClassesWithMostFields();
-        classesWithMostFields.forEach(System.out::println);
+        moreThanXMethods(2);
+        showExo1();
 
-        //Les classes appartenant aux deux précédentes
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Les classes appartenant aux deux catégories différentes");
-        getClassesWithMostFieldsAndMethods().forEach(System.out::println);
-
-        //Les classes qui possèdent plus de X méthodes (la valeur de X est donnée)
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Veuillez entrer un nombre afin de voir les classes qui possèdent plus que ce nombre de méthode :");
-        Scanner userScan = new Scanner(System.in);
-        String x = userScan.nextLine();
-        System.out.println("Voici les différentes classes avec plus de " + x + " méthodes : ");
-        moreThanXMethods(Integer.parseInt(x));
-
-        //Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe).
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe)");
-        getMethodsWithMostLines().forEach(System.out::println);
-
-        //Le nombre maximal de paramètres par rapport à toutes les méthodes de l’application.
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Le nombre maximal de paramètres est : " + max_parameter);
-
-        //Nombre de lignes totales du code
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println("Nombre total de lignes de code -> " + app_line_compter);
-
-        System.setProperty("java.awt.headless", "false");
-        createDiagram();
+        //System.setProperty("java.awt.headless", "false");
+        //createDiagram();
     }
 
     // read all java files from specific folder
@@ -243,8 +189,9 @@ public class ParserAST {
         typeDeclarationVisitor.getTypes().forEach(typeDeclaration -> {
             if (!typeDeclaration.isInterface()) {
                 class_compter += 1;
-                method_compter += typeDeclaration.getMethods().length;
+
             }
+            method_compter += typeDeclaration.getMethods().length;
         });
     }
 
@@ -335,7 +282,7 @@ public class ParserAST {
     public static void moreThanXMethods(int x) {
         classesMethodsHashMap.forEach((key, value) -> {
             if (value > x) {
-                System.out.println(key);
+                moreThanXList.add(key);
             }
         });
     }
@@ -437,6 +384,73 @@ public class ParserAST {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void showExo1() {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setTitle("Résultats de l'analyse du programme");
+        Toolkit k = Toolkit.getDefaultToolkit();
+        Dimension tailleEcran = k.getScreenSize();
+        int largeurEcran = tailleEcran.width;
+        int hauteurEcran = tailleEcran.height;
+        frame.setSize(largeurEcran / 2, hauteurEcran / 4);
+
+        JPanel panel = new JPanel();
+        int row = 30 + linePerMethodList.size() + classesWithMostMethods.size() + classesWithMostFields.size() + getClassesWithMostFieldsAndMethods().size() + moreThanXList.size() + getMethodsWithMostLines().size();
+        panel.setLayout(new GridLayout(row, 1));
+
+        panel.add(new JLabel("Nombre de classes de l'application -> " + class_compter));
+
+        panel.add(new JLabel("Nombre de méthodes de l'application -> " + method_compter));
+
+        panel.add(new JLabel("Nombre de paquets de l'application -> " + (int) packageList.stream().distinct().count()));
+
+        panel.add(new JLabel("Nombre moyen de méthodes par classes -> " + (method_compter / class_compter)));
+
+        panel.add(new JLabel("--------------Lignes de code Par Méthodes----------- "));
+        linePerMethodList.forEach(linePerMethod -> {
+            panel.add(new JLabel(linePerMethod));
+        });
+        panel.add(new JLabel("-----------------------------------------"));
+        panel.add(new JLabel("Nombre moyen d'attributs par classes -> " + (fields_compter / class_compter)));
+
+        panel.add(new JLabel("-----------Les 10% de classes avec le plus grand nombre de méthodes----------"));
+        classesWithMostMethods.forEach(parameter -> {
+            panel.add(new JLabel(parameter));
+        });
+        panel.add(new JLabel("---------------------------------------------------------------------"));
+
+        panel.add(new JLabel("-----------Les 10% de classes avec le plus grand nombre d'attributs----------"));
+        classesWithMostFields.forEach(parameter -> {
+            panel.add(new JLabel(parameter));
+        });
+        panel.add(new JLabel("---------------------------------------------------------------------"));
+
+        panel.add(new JLabel("Les classes appartenant aux deux catégories différentes"));
+        getClassesWithMostFieldsAndMethods().forEach(parameter -> {
+            panel.add(new JLabel(parameter));
+        });
+        panel.add(new JLabel("---------------------------------------------------------------------"));
+
+        panel.add(new JLabel("------------Voici les différentes classes avec plus de x méthodes : -----------"));
+        moreThanXList.forEach(parameter -> {
+            panel.add(new JLabel(parameter));
+        });
+        panel.add(new JLabel("---------------------------------------------------------------------"));
+
+        panel.add(new JLabel("-----------Les 10% des méthodes qui possèdent le plus grand nombre de lignes de code (par classe)-------"));
+        getMethodsWithMostLines().forEach(parameter -> {
+            panel.add(new JLabel(parameter));
+        });
+        panel.add(new JLabel("---------------------------------------------------------------------"));
+
+        panel.add(new JLabel("Le nombre maximal de paramètres est : " + max_parameter));
+
+        panel.add(new JLabel("Nombre total de lignes de code -> " + app_line_compter));
+
+        frame.add(new JScrollPane(panel));
+        frame.show();
     }
 
     public static void showView(String filename) throws IOException {
