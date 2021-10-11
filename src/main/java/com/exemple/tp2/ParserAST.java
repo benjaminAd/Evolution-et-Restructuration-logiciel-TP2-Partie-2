@@ -77,8 +77,8 @@ public class ParserAST {
         moreThanXMethods(2);
         showExo1();
 
-        //System.setProperty("java.awt.headless", "false");
-        //createDiagram();
+        System.setProperty("java.awt.headless", "false");
+        createDiagram();
     }
 
     // read all java files from specific folder
